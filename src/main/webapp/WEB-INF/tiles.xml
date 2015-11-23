@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE tiles-definitions PUBLIC "-//Apache Software Foundation//DTD Tiles Configuration 3.0//EN" "http://tiles.apache.org/dtds/tiles-config_3_0.dtd">
+<tiles-definitions>
+
+
+	<definition name="definition.base" template="/layout/template.jsp">
+		<put-attribute name="title" value="Technical Test" />
+		<put-attribute name="header" value="/layout/header.jsp" />
+		<put-attribute name="body" value="" />
+		<put-attribute name="footer" value="/layout/footer.jsp" />
+	</definition>
+
+
+	<definition name="index" extends="definition.base">
+		<put-attribute name="body" value="/pages/index.jsp" />
+	</definition>
+
+
+</tiles-definitions>
