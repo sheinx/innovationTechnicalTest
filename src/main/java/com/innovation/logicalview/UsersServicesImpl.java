@@ -1,5 +1,6 @@
 package com.innovation.logicalview;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -12,13 +13,14 @@ import org.springframework.transaction.annotation.Transactional;
 import com.hazelcast.config.Config;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.core.IList;
 import com.hazelcast.core.IMap;
 import com.hazelcast.query.EntryObject;
 import com.hazelcast.query.Predicate;
 import com.hazelcast.query.PredicateBuilder;
-import com.innovation.controller.UserController;
 import com.innovation.persistence.data.User;
 import com.innovation.persistence.repository.UserRepository;
+import com.innovation.utils.UserComparator;
 
 /**
  * User Service Implementation
@@ -32,7 +34,7 @@ public class UsersServicesImpl implements UsersServices {
 
 	@Autowired
 	private UserRepository userRepository;
-	
+
 	static Logger LOGGER = LoggerFactory.getLogger(UsersServicesImpl.class);
 
 	public List<User> findByName(String name) {
@@ -51,7 +53,7 @@ public class UsersServicesImpl implements UsersServices {
 	}
 
 	public List<User> findBySiret(String siret) {
-		List<User> users =userRepository.findBySiret(siret);
+		List<User> users = userRepository.findBySiret(siret);
 		return users;
 	}
 
@@ -65,13 +67,14 @@ public class UsersServicesImpl implements UsersServices {
 	}
 
 	public List<User> findAll() {
-		List<User> users =  (List<User>) userRepository.findAll();
+		List<User> users = (List<User>) userRepository.findAll();
 		return users;
 	}
 
 	public IMap<Long, User> initializeHazelcast() {
 		List<User> users = (List<User>) userRepository.findAll();
 		Config cfg = new Config();
+		cfg.setInstanceName("instance");
 		HazelcastInstance instance = Hazelcast.newHazelcastInstance(cfg);
 		IMap<Long, User> usersMap = instance.getMap("usersMap");
 		usersMap.addIndex("id", true);
@@ -84,12 +87,35 @@ public class UsersServicesImpl implements UsersServices {
 		}
 		return usersMap;
 	}
-	
-	public Collection<User> searchByFilter(String filter,IMap usersMap){
+
+	public List<User> initializeHazelcastList(IMap<Long,User> mapUser) {
+		HazelcastInstance instancia = Hazelcast.getHazelcastInstanceByName("instance");
+		List<User> listUser = instancia.getList("usersList");
+		Collection<User> listAux = mapUser.values();
+		for (User u : listAux) {
+			listUser.add(u);
+		}
+		return listUser;
+	}
+
+	public List<User> searchByFilter(String filter, IMap<Long,User> usersMap) {
 		EntryObject e = new PredicateBuilder().getEntryObject();
-		Predicate predicate = (e.get("name").equal("filter").or(e.get("phone").equal(filter)).or(e.get("company").equal(filter)).or(e.get("siret").equal(filter)));
+		Predicate predicate = (e.get("name").equal(filter).or(e.get("phone").equal(filter))
+				.or(e.get("company").equal(filter)).or(e.get("siret").equal(filter)));
 		Collection<User> usuarios = usersMap.values(predicate);
-		return usuarios;
+		List<User> listAux = new ArrayList<User>(usuarios);
+		listAux.sort(new UserComparator());
+		return listAux;
+	}
+
+	public List<User> getPaginatedUser(List<User> listUser,int init, int end) {
+		if ( listUser.size() < init+end ){
+			end = listUser.size();
+		}else{
+			end = init+end ;
+		}
+		List<User> userCollection = listUser.subList(init, end);
+		return userCollection;
 	}
 
 }

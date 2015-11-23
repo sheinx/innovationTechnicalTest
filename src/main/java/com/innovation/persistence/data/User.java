@@ -17,7 +17,7 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name="D_USER")
-public class User implements Serializable{
+public class User implements Serializable,Comparable<User>{
 
 	/**
 	 * 
@@ -50,7 +50,7 @@ public class User implements Serializable{
 		this.setPhone(phone);
 		this.setSiret(siret);
 	}
-
+	
 	public void setId(Long id) {
 		this.id = id;
 	}
@@ -87,5 +87,20 @@ public class User implements Serializable{
 		this.siret = siret;
 	}
 	
+	@Override
+	public int compareTo(User u) {
+	  int lastCmp = this.name.compareTo(u.getName());
+	  return (lastCmp != 0 ? lastCmp : siret.compareTo(u.getSiret()));
+	}
+	
+	@Override 
+	public boolean equals(Object other) {
+	    boolean result = false;
+	    if (other instanceof User) {
+	        User that = (User) other;
+	        result = (this.id == that.getId());
+	    }
+	    return result;
+	}
 	
 }

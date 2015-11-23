@@ -1,8 +1,8 @@
 package com.innovation.test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.*;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -20,9 +20,9 @@ import com.hazelcast.core.IMap;
 import com.hazelcast.query.EntryObject;
 import com.hazelcast.query.Predicate;
 import com.hazelcast.query.PredicateBuilder;
-import com.hazelcast.query.SqlPredicate;
 import com.innovation.logicalview.UsersServices;
 import com.innovation.persistence.data.User;
+import com.innovation.utils.UserComparator;
 
 @ContextConfiguration("/mvc-dispatcher-servlet-Test.xml")
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -115,6 +115,7 @@ public class UserTest {
 		Collection<User> colCustomers = usersMap.values();
 		Long acaba = System.currentTimeMillis();
 		System.out.println("Time expend:" + (acaba - empieza));
+		instance.shutdown();
 		assertEquals(150000, colCustomers.size());
 	}
 
@@ -137,8 +138,7 @@ public class UserTest {
 			usersMap.put(u.getId(), u);
 		}
 		EntryObject e = new PredicateBuilder().getEntryObject();
-//		Predicate predicate = (e.get("name").equal("A Aliquet Corp.").or(e.get("phone").equal("A Aliquet Corp.")).or(e.get("company").equal("A Aliquet Corp.")).or(e.get("siret").equal("A Aliquet Corp.")));
-		Predicate predicate = new SqlPredicate("name = 'A Aliquet Corp.' or company = 'A Aliquet Corp.' or phone 'A Aliquet Corp.'  or siret ='A Aliquet Corp.'");
+		Predicate predicate = (e.get("name").equal("A Aliquet Corp.").or(e.get("phone").equal("A Aliquet Corp.")).or(e.get("company").equal("A Aliquet Corp.")).or(e.get("siret").equal("A Aliquet Corp.")));
 		Long empieza = System.currentTimeMillis();
 		Collection<User> usuarios = usersMap.values(predicate);
 		Long acaba = System.currentTimeMillis();
@@ -151,7 +151,14 @@ public class UserTest {
 			instance.shutdown();
 			assertEquals(6, usuarios.size());
 		}
-
+	}
+	
+	@Test
+	public void testSort(){
+		List<User> users = usersServices.findAll();
+		List<User> userCollection = users.subList(0, 20);
+		userCollection.sort(new UserComparator());
+		assertNotNull(userCollection);
 	}
 
 }

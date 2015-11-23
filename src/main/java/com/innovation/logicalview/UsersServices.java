@@ -3,6 +3,7 @@ package com.innovation.logicalview;
 import java.util.Collection;
 import java.util.List;
 
+import com.hazelcast.core.IList;
 import com.hazelcast.core.IMap;
 import com.innovation.persistence.data.User;
 /**
@@ -74,5 +75,21 @@ public interface UsersServices {
 	 * @param usersMap
 	 * @return
 	 */
-	public Collection<User> searchByFilter(String filter,IMap usersMap);
+	public List<User> searchByFilter(String filter,IMap<Long,User> usersMap);
+	
+	/**
+	 * Method which is in charge of Initialize the Users
+	 * @param mapUser
+	 * @return
+	 */
+	public List<User> initializeHazelcastList(IMap<Long,User> mapUser);
+	
+	/**
+	 * Method to get a subset of list
+	 * @param listUser
+	 * @param init
+	 * @param end
+	 * @return
+	 */
+	public List<User> getPaginatedUser(List<User> listUser,int init, int end);
 }
